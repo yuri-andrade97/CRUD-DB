@@ -76,8 +76,20 @@ const atualizarAutor = async (req, res) => {
 const excluirAutor = async (req, res) => {
   const { id } = req.params;
 
+
   try {
-     const autorExcluido = await conexao.query('delete from autores where id = $1', [id]);
+
+    // verificar se o autor possui livro cadastrado, se sim, não deixar excluir
+    const livro = await conexao.query('select * from livros where autor_id = $1', [id])
+
+    if (livro.rowCount === 1) {
+      return res.json('Não foi possível excluir o autor, pois o mesmo possui livro cadastrado');
+    }
+
+    const query = `
+      delete from autores where id = $1
+    `;
+    const autorExcluido = await conexao.query(query, [id]);
 
     if (autorExcluido.rowCount === 0) {
       return res.status(404).json('Não foi possível excluir o autor');
