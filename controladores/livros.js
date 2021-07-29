@@ -7,7 +7,7 @@ const listarLivros = async (req, res) => {
       LEFT JOIN autores ON livros.autor_id = autores.id
     `
     const { rows: livros } = await conexao.query(query);
-
+    
     return res.status(200).json(livros);
   } catch (error) {
     return res.status(400).json(error.message);
@@ -66,12 +66,6 @@ const atualizarLivro = async (req, res) => {
    } = req.body;
 
   try {
-    const livro = await conexao.query('select * from livros where id = $1', [id]);
-    
-    if (livro.rowCount === 0) {
-      return res.status(404).json('livro não encontrado')
-    }
-
     if (!nome) {
       return res.status(400).json("O campo nome é obrigatório.")
     }
