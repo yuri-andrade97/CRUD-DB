@@ -7,6 +7,12 @@ const listarUsuarios = async (req, res) => {
     select * from usuarios
   `;
   const { rows: usuarios } = await conexao.query(query);
+
+  for (const usuario of usuarios) {
+    const { rows: emprestimos } = await conexao.query('SELECT * FROM emprestimos WHERE id_usuario = $1', [usuario.id]);
+    usuario.emprestimos = emprestimos;
+  }
+
   return res.status(200).json(usuarios);
 
   } catch (error) {
@@ -22,6 +28,10 @@ const obterUsuario = async (req, res) => {
       select * from usuarios where id = $1
     `;
     const usuario = await conexao.query(query, [id]);
+    const { rows: emprestimos } = await conexao.query('SELECT * FROM emprestimos WHERE id_usuario = $1', [usuario.rows[0].id]);
+    usuario.rows[0].emprestimo = emprestimos;  
+    console.log(usuario.rows)
+    
 
     if (usuario.rowCount === 0) {
       res.status(404).json('Usuário não encontrado.')
@@ -113,9 +123,16 @@ const excluirUsuario = async (req, res) => {
   const { id } = req.params;
 
   try {
+    const emprestimoAtivo = await conexao.query('SELECT * FROM emprestimos WHERE id_usuario = $1', [id]);
+
+    if (emprestimoAtivo.rowCount === 1) {
+      return res.json('Não foi possível exclui o usuário, pois há livros emprestados, devolva os livros para cancelar o cadastro.');
+    }
+    
     const query = `
       delete from usuarios where id = $1
     `;
+
 
     const usuarioExcluido = await conexao.query(query, [id]);
 

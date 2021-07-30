@@ -11,18 +11,21 @@ const listarAutores = async (req, res) => {
 
     return res.status(200).json(autores);
   } catch (error) {
-    return res.status(400).json(error.message)
+    return res.status(400).json(error.message);
   }
 };
 
 const obterAutor = async (req, res) => {
   const { id } = req.params;
   try {
-    const autor = await conexao.query('select * from autores where id = $1', [id]);
+    const autor = await conexao.query('select * from autores where id = $1', [id]);  
     
     if (autor.rowCount === 0) {
-      return res.status(404).json('Autor não encontrado')
+      return res.status(404).json('Autor não encontrado');
     }
+
+    const { rows: livros } = await conexao.query('select * from livros where autor_id = $1', [autor.rows[0].id]);
+    autor.rows[0].livros = livros;
 
     return res.status(200).json(autor.rows);
   } catch (error) {
