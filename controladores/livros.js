@@ -90,7 +90,16 @@ const excluirLivro = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const livroExcluido = await conexao.query('delete from livros where id = $1', [id]);
+    const livro = await conexao.query('select * from emprestimos WHERE id_livro = $1', [id])
+  
+    if (livro.rowCount > 0) {
+      return res.status(400).json('Não pode deletar um livro que está em fora da biblioteca(emprestado)')
+    }
+    const query = `
+      delete from livros where id = $1
+    `;
+
+    const livroExcluido = await conexao.query(query, [id]);
 
     if (livroExcluido.rowCount === 0) {
       return res.status(404).json('Livro não encontrado.');

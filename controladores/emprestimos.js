@@ -3,7 +3,9 @@ const conexao = require('../conexao');
 const listarEmprestimos = async (req, res) => {
   try {
     const query = `
-      SELECT * from emprestimos
+    select e.id, u.nome as usuario, u.telefone, u.email, l.nome as livro, status from emprestimos e
+    left join usuarios u on e.id_usuario = u.id
+    left join livros l on e.id_livro = l.id
     `;
 
     const { rows: emprestimos } = await conexao.query(query);
@@ -18,7 +20,10 @@ const obterEmprestimo = async (req, res) => {
   const { id } = req.params
   try {
     const query = `
-      SELECT * from emprestimos WHERE id = $1
+      SELECT emprestimos.id, usuarios.nome as usuario, usuarios.telefone, usuarios.email, livros.nome as livro, emprestimos.status FROM emprestimos 
+      LEFT JOIN usuarios on usuarios.id = emprestimos.id_usuario
+      LEFT JOIN livros on livros.id = emprestimos.id_livro
+      WHERE emprestimos.id = $1
     `;
 
     const emprestimo = await conexao.query(query, [id]);
